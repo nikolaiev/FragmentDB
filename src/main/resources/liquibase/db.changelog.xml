@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.4.xsd">
+    <changeSet author="vladyslav (generated)" id="1513785913898-1">
+        <createSequence sequenceName="GenTables_id_seq"/>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-2">
+        <createSequence sequenceName="Group_id_seq"/>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-3">
+        <createSequence sequenceName="University_id_seq"/>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-4">
+        <createSequence sequenceName="User_id_seq"/>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-5">
+        <createTable tableName="GenTables">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="gen_table_id_pk"/>
+            </column>
+            <column name="title" type="TEXT"/>
+            <column name="author_name" type="TEXT"/>
+            <column name="view_name" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="query" type="TEXT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-6">
+        <createTable tableName="Group">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="id_pk_group"/>
+            </column>
+            <column name="title" type="TEXT"/>
+            <column name="univ_id" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-7">
+        <createTable tableName="University">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="univ_id_pk"/>
+            </column>
+            <column name="title" type="TEXT"/>
+            <column defaultValue="'Ukraine'::text" name="country" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-8">
+        <createTable tableName="User">
+            <column autoIncrement="true" name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" primaryKeyName="id_pk_user"/>
+            </column>
+            <column name="name" type="TEXT"/>
+            <column name="soname" type="TEXT"/>
+            <column defaultValueComputed="now()" name="birthdate" type="TIMESTAMP(29) WITHOUT TIME ZONE"/>
+            <column name="gid" type="BIGINT"/>
+        </createTable>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-9">
+        <createIndex indexName="fki_univ_id_fk" tableName="Group">
+            <column name="univ_id"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-10">
+        <createIndex indexName="fki_user_gid_fk" tableName="User">
+            <column name="gid"/>
+        </createIndex>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-11">
+        <addForeignKeyConstraint baseColumnNames="univ_id" baseTableName="Group" constraintName="univ_id_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="University"/>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-12">
+        <addForeignKeyConstraint baseColumnNames="gid" baseTableName="User" constraintName="user_gid_fk" deferrable="false" initiallyDeferred="false" onDelete="NO ACTION" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="Group"/>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-13">
+        <createView fullDefinition="false" viewName="GroupUserCount"> SELECT g.title,
+    count(*) AS count
+   FROM ("Group" g
+     LEFT JOIN "User" u ON ((u.gid = g.id)))
+  GROUP BY g.id;</createView>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-14">
+        <createView fullDefinition="false" viewName="UserAll"> SELECT u.name,
+    u.soname,
+    u.birthdate,
+    p.title
+   FROM ("User" u
+     JOIN "Group" p ON ((u.gid = p.id)));</createView>
+    </changeSet>
+    <changeSet author="vladyslav (generated)" id="1513785913898-15">
+        <createView fullDefinition="false" viewName="UserFromUniversity"> SELECT u.name,
+    u.soname,
+    u.birthdate,
+    un.title
+   FROM (("User" u
+     JOIN "Group" p ON ((u.gid = p.id)))
+     JOIN "University" un ON ((p.univ_id = un.id)));</createView>
+    </changeSet>
+</databaseChangeLog>
