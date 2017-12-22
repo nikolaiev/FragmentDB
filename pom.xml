@@ -74,11 +74,11 @@
 			<version>3.10.2</version>
 		</dependency>
 
-		<dependency>
-			<groupId>org.liquibase</groupId>
-			<artifactId>liquibase-core</artifactId>
-			<version>${liuibase.version}</version>
-		</dependency>
+		<!--<dependency>-->
+			<!--<groupId>org.liquibase</groupId>-->
+			<!--<artifactId>liquibase-core</artifactId>-->
+			<!--<version>${liuibase.version}</version>-->
+		<!--</dependency>-->
 	</dependencies>
 
 	<build>
@@ -144,22 +144,22 @@
 				</executions>
 			</plugin>
 
-			<plugin>
-				<groupId>org.liquibase</groupId>
-				<artifactId>liquibase-maven-plugin</artifactId>
-				<version>${liuibase.version}</version>
-				<configuration>
-					<propertyFile>src/main/resources/application.properties</propertyFile>
-				</configuration>
-				<executions>
-					<execution>
-						<phase>process-resources</phase>
-						<goals>
-							<goal>update</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
+			<!--<plugin>-->
+				<!--<groupId>org.liquibase</groupId>-->
+				<!--<artifactId>liquibase-maven-plugin</artifactId>-->
+				<!--<version>${liuibase.version}</version>-->
+				<!--<configuration>-->
+					<!--<propertyFile>src/main/resources/application.properties</propertyFile>-->
+				<!--</configuration>-->
+				<!--<executions>-->
+					<!--<execution>-->
+						<!--<phase>process-resources</phase>-->
+						<!--<goals>-->
+							<!--<goal>update</goal>-->
+						<!--</goals>-->
+					<!--</execution>-->
+				<!--</executions>-->
+			<!--</plugin>-->
 
 		</plugins>
 	</build>
