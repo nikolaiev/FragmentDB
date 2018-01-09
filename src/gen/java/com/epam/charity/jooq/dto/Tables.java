@@ -8,7 +8,6 @@ import com.epam.charity.jooq.dto.tables.Gentables;
 import com.epam.charity.jooq.dto.tables.Group;
 import com.epam.charity.jooq.dto.tables.University;
 import com.epam.charity.jooq.dto.tables.User;
-import com.epam.charity.jooq.dto.tables.Userall;
 
 import javax.annotation.Generated;
 
@@ -45,9 +44,4 @@ public class Tables {
      * The table <code>public.User</code>.
      */
     public static final User USER = com.epam.charity.jooq.dto.tables.User.USER;
-
-    /**
-     * The table <code>public.UserAll</code>.
-     */
-    public static final Userall USERALL = com.epam.charity.jooq.dto.tables.Userall.USERALL;
 }

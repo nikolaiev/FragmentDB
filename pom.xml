@@ -96,9 +96,9 @@
 				<configuration>
 					<jdbc>
 						<driver>org.postgresql.Driver</driver>
-						<url>jdbc:postgresql://localhost:5432/lab5</url>
+						<url>jdbc:postgresql://localhost/postgres</url>
 						<user>postgres</user>
-						<password>postgres</password>
+						<password>1111</password>
 					</jdbc>
 					<generator>
 						<database>

@@ -1,124 +1,112 @@
 package com.kpi.db.dao;
 
-import com.kpi.db.models.TableDTO;
+import com.kpi.db.domain.City;
+import com.kpi.db.models.ViewModel;
+
 import org.jooq.DSLContext;
+import org.jooq.Meta;
 import org.jooq.Table;
-import org.jooq.util.xml.jaxb.Column;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
-import javax.sql.DataSource;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-import static java.lang.String.format;
-
+import static com.epam.charity.jooq.dto.tables.Gentables.GENTABLES;
+import static com.epam.charity.jooq.dto.tables.Group.GROUP;
+import static com.epam.charity.jooq.dto.tables.User.USER;
+import static com.kpi.db.domain.City.KHARKIV;
+import static com.kpi.db.domain.City.KYIV;
+import static com.kpi.db.domain.City.LVIV;
+import static java.util.Collections.*;
+import static org.jooq.impl.DSL.name;
+import static org.jooq.impl.DSL.select;
 
 @Repository
 public class TablesDaoImpl implements TablesDao {
-    private final String SELECT_FROM_VIEW = "SELECT * FROM public.\"%s\"";
-    private final String CREATE_VIEW = "Create view \"%s\" as %s";
-    private final String INSERT_VIEW_METAINFO = "INSERT INTO public.\"GenTables\"(\n" +
-            "            title, author_name, view_name, query)\n" +
-            "    VALUES (?, ?, ?, ?)";
-    private final String HIDDEN_TABLE = "GenTables";
 
     @Autowired
-    DSLContext dslContext;
+    private Map<City, DSLContext> dslRegistry;
 
-    @Qualifier("lab5_2")
-    @Autowired
-    private DataSource dataSourceSecond;
+    private static final Map<City, Function<ViewModel, List<Long>>> getGroupsRegistry =
+            new HashMap<City, Function<ViewModel, List<Long>>>() {{
+                put(KYIV, ViewModel::getKyivGroups);
+                put(LVIV, ViewModel::getLvivGroups);
+                put(KHARKIV, ViewModel::getKharkivGroups);
+            }};
 
-    @Autowired
-    private DataSource dataSource;
+    @Override
+    public List<Map<String, Object>> getTableContent(String viewName) {
+        List<Map<String, Object>> rowsFirstDB = tryGetTableContent(viewName, dslRegistry.get(KYIV));
+        List<Map<String, Object>> rowsSecondDB = tryGetTableContent(viewName, dslRegistry.get(LVIV));
+        List<Map<String, Object>> rowsThirdDB = tryGetTableContent(viewName, dslRegistry.get(KHARKIV));
 
-    public List<TableDTO> getAllTables() {
-
-        List<Table<?>> tables = this.dslContext.meta().getTables();
-
-        return tables.stream().filter(table->!table.getName().equals(HIDDEN_TABLE))
-                .map(table -> TableDTO.builder()
-                        .name(table.getName())
-                        .columns(dslContext.informationSchema(table).getColumns()
-                                .stream().map(Column::getColumnName).collect(Collectors.toList()))
-                        .build())
+        return Stream.of(rowsFirstDB, rowsSecondDB, rowsThirdDB)
+                .flatMap(Collection::stream)
                 .collect(Collectors.toList());
     }
 
-    public List<Map<String, Object>> getTableContent(String viewName) {
-        List<Map<String, Object>> rows = new ArrayList<>();
+    private List<Map<String, Object>> tryGetTableContent(String viewName, DSLContext dsl) {
+        List<Map<String, Object>> tableContent = tryFetchTableContent(dsl, viewName);
+        return Optional.ofNullable(tableContent).orElse(emptyList());
+    }
 
-        List<Map<String, Object>> rowsFirstDB = getTableContentConnection(viewName, dataSource);
-        List<Map<String, Object>> rowsSecondDB = getTableContentConnection(viewName, dataSourceSecond);
+    private List<Map<String, Object>> tryFetchTableContent(DSLContext dsl, String viewName) {
+        return isViewExist(dsl, viewName) ? fetchTableContent(dsl, viewName) : null;
+    }
 
-        rows.addAll(rowsFirstDB);
-        rows.addAll(rowsSecondDB);
+    private boolean isViewExist(DSLContext dsl, String viewName) {
+        Meta meta = dsl.meta();
+        List<Table<?>> tables = meta.getTables();
+        return tables.stream().parallel().anyMatch(t -> t.getName().equals(viewName));
+    }
 
-
-        return rows;
+    private List<Map<String, Object>> fetchTableContent(DSLContext dsl, String viewName) {
+        return dsl.select().from(name(viewName)).fetchMaps();
     }
 
     @Override
-    public void createTable(String viewName, String querySelect, String author, String info) {
-        createConcreteDataSourceTable(viewName,querySelect,author,info,dataSource);
-        createConcreteDataSourceTable(viewName,querySelect,author,info,dataSourceSecond);
+    public void createTable(ViewModel view) {
+        tryCreateConcreteDataSourceTable(view, KYIV);
+        tryCreateConcreteDataSourceTable(view, LVIV);
+        tryCreateConcreteDataSourceTable(view, KHARKIV);
     }
 
-    private void createConcreteDataSourceTable(String viewName, String querySelect, String author, String info,DataSource concreteDataSource){
-        try (Connection connection = concreteDataSource.getConnection()) {
-            //creating table
-            Statement statement = connection.createStatement();
-            String query = format(CREATE_VIEW, viewName,querySelect);
-            System.out.println(query);
-            statement.executeUpdate(query);
-
-            //creating metainfo
-            PreparedStatement preparedStatement=connection.prepareStatement(INSERT_VIEW_METAINFO);
-            preparedStatement.setString(1,info);
-            preparedStatement.setString(2,author);
-            preparedStatement.setString(3,viewName);
-            preparedStatement.setString(4,querySelect);
-            System.out.println(preparedStatement.toString());
-            preparedStatement.executeUpdate();
-
-        } catch (Exception e) {
-            throw new RuntimeException(e.getMessage());
+    private void tryCreateConcreteDataSourceTable(ViewModel view, City city) {
+        List<Long> groupIds = getGroupIds(city, view);
+        if (groupIds == null) {
+            return;
         }
+
+        DSLContext dsl = dslRegistry.get(city);
+        createView(dsl, groupIds, view);
     }
 
-    private List<Map<String, Object>> getTableContentConnection(String viewName,DataSource concreteDataSource){
-        List<Map<String, Object>> rows = new ArrayList<>();
-        try (Connection connection = concreteDataSource.getConnection()) {
-            Statement statement = connection.createStatement();
+    private void createView(DSLContext dsl, List<Long> groupIds, ViewModel view) {
+        dsl.createView(view.getName())
+                .as(
+                        select(USER.ID, USER.NAME, USER.SONAME, USER.BIRTHDATE, GROUP.TITLE)
+                                .from(USER)
+                                .naturalJoin(GROUP)
+                                .where(GROUP.ID.in(groupIds))
+                ).execute();
+        createViewMetadata(dsl, view);
+    }
 
-            String query = format(SELECT_FROM_VIEW, viewName);
+    private List<Long> getGroupIds(City city, ViewModel view) {
+        Function<ViewModel, List<Long>> getGroupsFunction = getGroupsRegistry.get(city);
+        return getGroupsFunction.apply(view);
+    }
 
-            ResultSet resultSet = statement.executeQuery(query);
-
-            ResultSetMetaData metaData = resultSet.getMetaData();
-            int columnCount = metaData.getColumnCount();
-
-            while (resultSet.next()) {
-                Map<String, Object> columns = new LinkedHashMap<>();
-
-                for (int i = 1; i <= columnCount; i++) {
-                    columns.put(metaData.getColumnLabel(i), resultSet.getObject(i));
-                }
-
-                rows.add(columns);
-            }
-
-        } catch (Exception e) {
-            //e.printStackTrace();
-            throw  new RuntimeException("Query exception");
-        }
-
-        return rows;
+    private void createViewMetadata(DSLContext dsl, ViewModel view) {
+        dsl.insertInto(GENTABLES, GENTABLES.TITLE, GENTABLES.AUTHOR_NAME, GENTABLES.VIEW_NAME)
+                .values(view.getInfo(), view.getAuthor(), view.getName())
+                .execute();
     }
 }

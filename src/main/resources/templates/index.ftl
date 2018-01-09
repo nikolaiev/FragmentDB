@@ -22,14 +22,12 @@
             <th>Info</th>
             <th>AuthorName</th>
             <th>ViewName</th>
-            <th>Query</th>
         </tr>
     <#list tables as table>
         <tr onclick="window.location = '/view/${table.viewName}'">
             <td>${table.title}</td>
             <td>${table.authorName}</td>
             <td>${table.viewName}</td>
-            <td>${table.query}</td>
         </tr>
 
     </#list>

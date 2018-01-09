@@ -8,7 +8,6 @@ import com.epam.charity.jooq.dto.tables.Gentables;
 import com.epam.charity.jooq.dto.tables.Group;
 import com.epam.charity.jooq.dto.tables.University;
 import com.epam.charity.jooq.dto.tables.User;
-import com.epam.charity.jooq.dto.tables.Userall;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,7 +33,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Public extends SchemaImpl {
 
-    private static final long serialVersionUID = -89976106;
+    private static final long serialVersionUID = -2047575680;
 
     /**
      * The reference instance of <code>public</code>
@@ -60,11 +59,6 @@ public class Public extends SchemaImpl {
      * The table <code>public.User</code>.
      */
     public final User USER = com.epam.charity.jooq.dto.tables.User.USER;
-
-    /**
-     * The table <code>public.UserAll</code>.
-     */
-    public final Userall USERALL = com.epam.charity.jooq.dto.tables.Userall.USERALL;
 
     /**
      * No further instances allowed
@@ -94,7 +88,6 @@ public class Public extends SchemaImpl {
             Gentables.GENTABLES,
             Group.GROUP,
             University.UNIVERSITY,
-            User.USER,
-            Userall.USERALL);
+            User.USER);
     }
 }

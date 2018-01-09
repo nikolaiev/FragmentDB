@@ -1,11 +1,11 @@
-package com.kpi.db.models;
+package com.kpi.db.domain;
 
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class GetTableDTO {
+public class GenTableDTO {
     private long id;
     private String title;
     private String authorName;

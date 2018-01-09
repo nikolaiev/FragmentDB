@@ -35,7 +35,7 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Gentables extends TableImpl<GentablesRecord> {
 
-    private static final long serialVersionUID = 1322399625;
+    private static final long serialVersionUID = 1323044853;
 
     /**
      * The reference instance of <code>public.GenTables</code>
@@ -69,11 +69,6 @@ public class Gentables extends TableImpl<GentablesRecord> {
      * The column <code>public.GenTables.view_name</code>.
      */
     public final TableField<GentablesRecord, String> VIEW_NAME = createField("view_name", org.jooq.impl.SQLDataType.CLOB.nullable(false), this, "");
-
-    /**
-     * The column <code>public.GenTables.query</code>.
-     */
-    public final TableField<GentablesRecord, String> QUERY = createField("query", org.jooq.impl.SQLDataType.CLOB, this, "");
 
     /**
      * Create a <code>public.GenTables</code> table reference
